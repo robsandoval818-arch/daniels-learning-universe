@@ -1,0 +1,76 @@
+import { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useGameStore } from '../../store/useGameStore'
+import { getTheme } from '../../data/themeWorlds'
+import { getMissionForDay } from '../../data/dailyMissions'
+import { buildQuestionSet } from '../../lib/questionGenerator'
+import { getReadingSkillById } from '../../data/readingCurriculum'
+import ThemeBackground from '../ui/ThemeBackground'
+import TopBar from '../ui/TopBar'
+import QuestionCard from '../games/QuestionCard'
+
+export default function ReadingChallengeScreen() {
+  const progress = useGameStore((s) => s.progress)
+  const setScreen = useGameStore((s) => s.setScreen)
+  const recordAnswer = useGameStore((s) => s.recordAnswer)
+  const advanceSkillIfMastered = useGameStore((s) => s.advanceSkillIfMastered)
+  const beginSession = useGameStore((s) => s.beginSession)
+  const endSession = useGameStore((s) => s.endSession)
+
+  const theme = getTheme(progress.themeId)
+  const mission = getMissionForDay(progress.currentDay)
+  const skillId = mission?.readingSkillId ?? progress.currentReadingSkillId
+  const skill = getReadingSkillById(skillId)
+
+  const questions = useMemo(() => buildQuestionSet(progress.currentDay, 'reading', skillId), [progress.currentDay, skillId])
+
+  const [index, setIndex] = useState(0)
+  const [correctCount, setCorrectCount] = useState(0)
+
+  useEffect(() => {
+    beginSession()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  if (!questions.length) {
+    return (
+      <ThemeBackground theme={theme}>
+        <div className="min-h-screen flex items-center justify-center text-white/60">Loading mission…</div>
+      </ThemeBackground>
+    )
+  }
+
+  const question = questions[index]
+
+  const handleAnswer = (correct: boolean) => {
+    recordAnswer('reading', skillId, correct, progress.currentDay)
+    const newCorrect = correctCount + (correct ? 1 : 0)
+    setCorrectCount(newCorrect)
+
+    if (index + 1 < questions.length) {
+      setIndex(index + 1)
+    } else {
+      advanceSkillIfMastered('reading')
+      endSession('reading', questions.length, newCorrect)
+      setScreen('math-challenge')
+    }
+  }
+
+  return (
+    <ThemeBackground theme={theme}>
+      <TopBar theme={theme} stars={progress.stars} streak={progress.streakDays} onBack={() => setScreen('mission-map')} title="Reading Mission" />
+      <div className="px-6 pb-16 flex flex-col items-center">
+        {skill && (
+          <p className="text-white/40 text-xs font-display uppercase tracking-widest mb-6 text-center max-w-md">
+            Skill focus: {skill.skillName} — {skill.childFriendlyExplanation}
+          </p>
+        )}
+        <AnimatePresence mode="wait">
+          <motion.div key={question.id} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} className="w-full">
+            <QuestionCard question={question} theme={theme} questionNumber={index + 1} totalQuestions={questions.length} onAnswer={handleAnswer} />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </ThemeBackground>
+  )
+}
