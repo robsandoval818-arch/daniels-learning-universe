@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { Question, ThemeWorld } from '../../types'
 import GlassCard from '../ui/GlassCard'
-import { randomEncouragement } from '../../lib/masteryEngine'
+import TutorCoach, { type CoachMood } from '../ui/TutorCoach'
+import { randomEncouragement, tutorFrame } from '../../lib/masteryEngine'
 import { useAutoNarrate, useSpeakOnDemand } from '../../hooks/useSpeak'
+import { useGameStore } from '../../store/useGameStore'
 
 interface QuestionCardProps {
   question: Question
@@ -54,20 +56,24 @@ function VisualBlock({ question }: { question: Question }) {
 }
 
 export default function QuestionCard({ question, theme, questionNumber, totalQuestions, onAnswer }: QuestionCardProps) {
+  const childName = useGameStore((s) => s.progress.childName)
   const [status, setStatus] = useState<Status>('idle')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [wrongIds, setWrongIds] = useState<string[]>([])
   const [message, setMessage] = useState<string>('')
+  const [mood, setMood] = useState<CoachMood>('idle')
 
   useEffect(() => {
     setStatus('idle')
     setSelectedId(null)
     setWrongIds([])
     setMessage('')
+    setMood('idle')
   }, [question.id])
 
   const correctOption = question.options.find((o) => o.isCorrect)
   const showHint = status === 'wrong-retry' || status === 'reveal'
+  const hintText = showHint ? tutorFrame(status === 'reveal' ? 'explanation' : 'hint', status === 'reveal' ? question.explanation : question.hint) : ''
 
   // Read the question and its choices aloud automatically whenever a new
   // question loads — the core "help him" feature for a pre/early reader.
@@ -77,9 +83,7 @@ export default function QuestionCard({ question, theme, questionNumber, totalQue
   const speakNow = useSpeakOnDemand()
 
   // Also read the encouragement + hint/explanation aloud once it appears.
-  const feedbackNarration = message
-    ? `${message}${showHint ? ' ' + (status === 'reveal' ? question.explanation : question.hint) : ''}`
-    : ''
+  const feedbackNarration = message ? `${message}${showHint ? ' ' + hintText : ''}` : ''
   useAutoNarrate(feedbackNarration)
 
   const handleSelect = (optionId: string, isCorrect: boolean) => {
@@ -88,20 +92,23 @@ export default function QuestionCard({ question, theme, questionNumber, totalQue
 
     if (isCorrect) {
       setStatus('correct')
-      setMessage(randomEncouragement(true))
+      setMood('happy')
+      setMessage(randomEncouragement(true, childName))
       setTimeout(() => onAnswer(true), 1300)
       return
     }
 
     const newWrong = [...wrongIds, optionId]
     setWrongIds(newWrong)
-    setMessage(randomEncouragement(false))
+    setMessage(randomEncouragement(false, childName))
 
     if (newWrong.length >= 2) {
       setStatus('reveal')
-      setTimeout(() => onAnswer(false), 1900)
+      setMood('thinking')
+      setTimeout(() => onAnswer(false), 2400)
     } else {
       setStatus('wrong-retry')
+      setMood('encouraging')
     }
   }
 
@@ -129,6 +136,10 @@ export default function QuestionCard({ question, theme, questionNumber, totalQue
             />
           ))}
         </div>
+      </div>
+
+      <div className="mb-5">
+        <TutorCoach theme={theme} mood={mood} message={message ? `${message}${showHint ? '\n' + hintText : ''}` : undefined} />
       </div>
 
       <p className="font-display text-xl sm:text-2xl font-semibold leading-snug whitespace-pre-line text-center">
@@ -163,27 +174,16 @@ export default function QuestionCard({ question, theme, questionNumber, totalQue
         })}
       </div>
 
-      <AnimatePresence mode="wait">
-        {message && (
-          <motion.div
-            key={message + status}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
+      <AnimatePresence>
+        {status === 'reveal' && correctOption && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mt-5 text-center"
+            className="text-white/40 text-xs mt-4 text-center"
           >
-            <p className="font-display font-semibold" style={{ color: theme.accent }}>
-              {message}
-            </p>
-            {showHint && (
-              <p className="text-white/60 text-sm mt-1">
-                💡 {status === 'reveal' ? question.explanation : question.hint}
-              </p>
-            )}
-            {status === 'reveal' && correctOption && (
-              <p className="text-white/40 text-xs mt-1">The answer was "{correctOption.label}".</p>
-            )}
-          </motion.div>
+            The answer was "{correctOption.label}".
+          </motion.p>
         )}
       </AnimatePresence>
     </GlassCard>

@@ -18,7 +18,13 @@ export default function ThemeSelectorScreen() {
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-obsidian-950 px-6 py-14">
+    <div
+      className="relative min-h-screen w-full overflow-hidden px-6 py-14"
+      style={{
+        background:
+          'radial-gradient(circle at 15% -10%, rgba(139,109,245,0.20), transparent 55%), radial-gradient(circle at 90% 100%, rgba(245,196,83,0.14), transparent 50%), linear-gradient(160deg, #0a0713, #14101f, #08060d)',
+      }}
+    >
       <ParticleField color="#8b6df5" count={30} />
       <div className="relative z-10 max-w-5xl mx-auto">
         <div className="text-center mb-10">
@@ -38,21 +44,28 @@ export default function ThemeSelectorScreen() {
               >
                 <GlassCard
                   onClick={() => handlePick(theme)}
-                  className={`p-6 h-full cursor-pointer transition-transform ${locked ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:-translate-y-1'}`}
+                  className={`relative overflow-hidden p-6 h-full cursor-pointer transition-transform ${locked ? 'opacity-40 grayscale cursor-not-allowed' : 'hover:-translate-y-1'}`}
                   style={{
-                    background: `radial-gradient(circle at 30% 0%, ${theme.accent}22, transparent 60%), linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))`,
+                    background: `radial-gradient(circle at 30% 0%, ${theme.accent}45, transparent 62%), linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))`,
+                    boxShadow: locked ? undefined : `0 0 0 1px ${theme.accent}30, 0 20px 45px -20px ${theme.accent}55`,
                   }}
                   whileHover={locked ? {} : { scale: 1.02 }}
                 >
                   <div
-                    className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center mb-4"
-                    style={{ background: `${theme.accent}22`, border: `1px solid ${theme.accent}55` }}
+                    className="absolute top-0 left-0 right-0 h-1"
+                    style={{ background: `linear-gradient(90deg, transparent, ${theme.accent}, transparent)` }}
+                  />
+                  <div
+                    className={`w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center mb-4 ${locked ? '' : 'animate-float'}`}
+                    style={{ background: `${theme.accent}22`, border: `2px solid ${theme.accent}70`, boxShadow: `0 0 32px -6px ${theme.accent}99` }}
                   >
                     <img src={theme.helperImage} alt={theme.helperName} className="w-full h-full object-cover" />
                   </div>
                   <h3 className="font-display text-xl font-semibold mb-1">{theme.name}</h3>
-                  <p className="text-sm text-white/50 mb-4">{theme.tagline}</p>
-                  <p className="text-xs text-white/40 leading-relaxed">{theme.description}</p>
+                  <p className="text-sm mb-4 font-semibold" style={{ color: theme.accent }}>
+                    {theme.tagline}
+                  </p>
+                  <p className="text-xs text-white/50 leading-relaxed">{theme.description}</p>
                   {locked && (
                     <p className="mt-4 text-xs font-display font-semibold text-white/60">🔒 Locked by parent</p>
                   )}

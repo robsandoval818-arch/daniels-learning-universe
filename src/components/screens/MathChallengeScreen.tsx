@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useGameStore } from '../../store/useGameStore'
 import { getTheme } from '../../data/themeWorlds'
 import { getMissionForDay } from '../../data/dailyMissions'
-import { buildQuestionSet } from '../../lib/questionGenerator'
+import { buildQuestionSet, buildEasierFollowUp } from '../../lib/questionGenerator'
 import { getMathSkillById } from '../../data/mathCurriculum'
 import ThemeBackground from '../ui/ThemeBackground'
 import TopBar from '../ui/TopBar'
@@ -22,15 +22,23 @@ export default function MathChallengeScreen() {
   const skillId = mission?.mathSkillId ?? progress.currentMathSkillId
   const skill = getMathSkillById(skillId)
 
-  const questions = useMemo(() => buildQuestionSet(progress.currentDay, 'math', skillId), [progress.currentDay, skillId])
-
+  const [questions, setQuestions] = useState(() => buildQuestionSet(progress.currentDay, 'math', skillId))
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
+  const [consecutiveWrong, setConsecutiveWrong] = useState(0)
 
   useEffect(() => {
     beginSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    setQuestions(buildQuestionSet(progress.currentDay, 'math', skillId))
+    setIndex(0)
+    setCorrectCount(0)
+    setConsecutiveWrong(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress.currentDay, skillId])
 
   if (!questions.length) {
     return (
@@ -47,8 +55,24 @@ export default function MathChallengeScreen() {
     const newCorrect = correctCount + (correct ? 1 : 0)
     setCorrectCount(newCorrect)
 
-    if (index + 1 < questions.length) {
-      setIndex(index + 1)
+    // Live pacing: two wrong answers in a row swaps the *next* question for
+    // an easier, confidence-building one from the previous skill — like a
+    // tutor noticing frustration and quietly stepping back a level.
+    const nextIndex = index + 1
+    if (!correct) {
+      const newStreak = consecutiveWrong + 1
+      setConsecutiveWrong(newStreak)
+      if (newStreak >= 2 && nextIndex < questions.length) {
+        const easier = buildEasierFollowUp(progress.currentDay, 'math', skillId, nextIndex)
+        setQuestions((prev) => prev.map((q, i) => (i === nextIndex ? easier : q)))
+        setConsecutiveWrong(0)
+      }
+    } else {
+      setConsecutiveWrong(0)
+    }
+
+    if (nextIndex < questions.length) {
+      setIndex(nextIndex)
     } else {
       advanceSkillIfMastered('math')
       endSession('math', questions.length, newCorrect)

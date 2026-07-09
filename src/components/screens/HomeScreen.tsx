@@ -26,9 +26,10 @@ export default function HomeScreen() {
       className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden px-6"
       style={{
         background:
-          'radial-gradient(circle at 50% 0%, rgba(245,196,83,0.10), transparent 55%), linear-gradient(160deg, #05060a, #0d1120, #05060a)',
+          'radial-gradient(circle at 50% 0%, rgba(245,196,83,0.22), transparent 55%), radial-gradient(circle at 85% 90%, rgba(139,109,245,0.16), transparent 50%), linear-gradient(160deg, #05060a, #0d1120, #05060a)',
       }}
     >
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[36rem] h-[36rem] rounded-full blur-3xl opacity-30 animate-float-slow pointer-events-none bg-[radial-gradient(circle,rgba(245,196,83,0.5),transparent_70%)]" />
       <ParticleField color="#f5c453" count={36} />
 
       <motion.div

@@ -63,6 +63,13 @@ const ENCOURAGEMENT_CORRECT = [
   'That was brilliant thinking!',
 ]
 
+const ENCOURAGEMENT_CORRECT_NAMED = [
+  'Nice one, {name}!',
+  "{name}, you're on fire!",
+  'That’s exactly right, {name}.',
+  '{name}, your brain just leveled up!',
+]
+
 const ENCOURAGEMENT_INCORRECT = [
   "Let's solve it together.",
   'Almost! Look closely.',
@@ -70,7 +77,49 @@ const ENCOURAGEMENT_INCORRECT = [
   'Every great learner practices — let’s try again.',
 ]
 
-export function randomEncouragement(wasCorrect: boolean): string {
+const ENCOURAGEMENT_INCORRECT_NAMED = [
+  'No worries, {name} — let’s look again together.',
+  '{name}, you’re close. Let’s slow down and check.',
+  'Good try, {name}! Tutors love questions like this — let’s break it down.',
+]
+
+/**
+ * Picks an encouragement line. When a childName is supplied, has a chance
+ * of using a personalized, name-referencing variant so feedback feels like
+ * it's coming from someone who actually knows the kid, not a generic app.
+ */
+export function randomEncouragement(wasCorrect: boolean, childName?: string): string {
+  const useNamed = !!childName && Math.random() < 0.5
+  if (useNamed) {
+    const pool = wasCorrect ? ENCOURAGEMENT_CORRECT_NAMED : ENCOURAGEMENT_INCORRECT_NAMED
+    const line = pool[Math.floor(Math.random() * pool.length)]
+    return line.replace('{name}', childName!)
+  }
   const pool = wasCorrect ? ENCOURAGEMENT_CORRECT : ENCOURAGEMENT_INCORRECT
   return pool[Math.floor(Math.random() * pool.length)]
+}
+
+const TUTOR_HINT_LEAD_INS = [
+  "Here's a clue:",
+  "Let's think it through:",
+  'Try this:',
+  "Here's a tip:",
+]
+
+const TUTOR_EXPLANATION_LEAD_INS = [
+  "Let's break it down together:",
+  "Here's how to think about it:",
+  'Watch this:',
+  "Let's walk through it step by step:",
+]
+
+/**
+ * Wraps a raw hint/explanation string in warmer, more scaffolded tutor
+ * phrasing — the goal is for feedback to read like a patient person
+ * teaching Daniel, not a terse system message.
+ */
+export function tutorFrame(kind: 'hint' | 'explanation', text: string): string {
+  const pool = kind === 'hint' ? TUTOR_HINT_LEAD_INS : TUTOR_EXPLANATION_LEAD_INS
+  const leadIn = pool[Math.floor(Math.random() * pool.length)]
+  return `${leadIn} ${text}`
 }

@@ -394,3 +394,11 @@ export function getNextMathSkill(currentId: string): CurriculumSkill | undefined
   if (!current) return MATH_CORE_SKILLS[0]
   return MATH_CORE_SKILLS.find((s) => s.order === current.order + 1)
 }
+
+/** Used for live difficulty adaptation — steps back one skill so a
+ * struggling session can serve an easier confidence-building question. */
+export function getPreviousMathSkill(currentId: string): CurriculumSkill | undefined {
+  const current = getMathSkillById(currentId)
+  if (!current) return undefined
+  return MATH_CORE_SKILLS.find((s) => s.order === current.order - 1)
+}

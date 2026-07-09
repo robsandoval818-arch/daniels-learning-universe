@@ -237,3 +237,11 @@ export function getNextReadingSkill(currentId: string): CurriculumSkill | undefi
   if (!current) return READING_CORE_SKILLS[0]
   return READING_CORE_SKILLS.find((s) => s.order === current.order + 1)
 }
+
+/** Used for live difficulty adaptation — steps back one skill so a
+ * struggling session can serve an easier confidence-building question. */
+export function getPreviousReadingSkill(currentId: string): CurriculumSkill | undefined {
+  const current = getReadingSkillById(currentId)
+  if (!current) return undefined
+  return READING_CORE_SKILLS.find((s) => s.order === current.order - 1)
+}

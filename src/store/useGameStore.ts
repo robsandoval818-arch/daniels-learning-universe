@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import { safeStorage } from '../lib/safeStorage'
 import type {
   ChildProgress,
   ParentSettings,
@@ -289,6 +290,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: STORAGE_KEY,
+      storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({ progress: state.progress, settings: state.settings }),
     },
   ),

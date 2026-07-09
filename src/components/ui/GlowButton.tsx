@@ -36,9 +36,17 @@ export default function GlowButton({
     <motion.button
       whileHover={{ scale: 1.04, y: -2 }}
       whileTap={{ scale: 0.96 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      animate={
+        variant === 'solid'
+          ? { boxShadow: [`0 8px 30px -6px ${color}80`, `0 8px 42px -4px ${color}b0`, `0 8px 30px -6px ${color}80`] }
+          : {}
+      }
+      transition={{
+        default: { type: 'spring', stiffness: 400, damping: 20 },
+        boxShadow: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
+      }}
       className={`font-display font-semibold no-select select-none ${sizeMap[size]} ${className}`}
-      style={variant === 'solid' ? solidStyle : ghostStyle}
+      style={variant === 'solid' ? { ...solidStyle, boxShadow: undefined } : ghostStyle}
       {...rest}
     >
       {children}
