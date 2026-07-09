@@ -6,6 +6,7 @@ import ThemeBackground from '../ui/ThemeBackground'
 import TopBar from '../ui/TopBar'
 import GlassCard from '../ui/GlassCard'
 import GlowButton from '../ui/GlowButton'
+import { useAutoNarrate } from '../../hooks/useSpeak'
 
 export default function MissionMapScreen() {
   const progress = useGameStore((s) => s.progress)
@@ -13,6 +14,8 @@ export default function MissionMapScreen() {
   const theme = getTheme(progress.themeId)
 
   const activeMission = DAILY_MISSIONS.find((m) => m.day === progress.currentDay) ?? DAILY_MISSIONS[0]
+  const introText = activeMission.themeIntro.replace('{helper}', theme.helperName).replace('{verb}', theme.missionVerb)
+  useAutoNarrate(`Day ${activeMission.day}: ${activeMission.title}. ${introText}`)
 
   const handleStart = () => {
     setScreen('reading-challenge')
@@ -24,13 +27,16 @@ export default function MissionMapScreen() {
 
       <div className="px-6 pb-16 max-w-3xl mx-auto">
         <GlassCard className="p-6 sm:p-8 mb-8 text-center" glow>
-          <p className="text-4xl mb-2">{theme.helperEmoji}</p>
+          <div
+            className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3"
+            style={{ border: `2px solid ${theme.accent}88`, boxShadow: `0 0 30px -6px ${theme.accent}99` }}
+          >
+            <img src={theme.helperImage} alt={theme.helperName} className="w-full h-full object-cover" />
+          </div>
           <h2 className="font-display text-xl sm:text-2xl font-bold mb-2">
             Day {activeMission.day}: {activeMission.title}
           </h2>
-          <p className="text-white/60 text-sm mb-6 max-w-md mx-auto">
-            {activeMission.themeIntro.replace('{helper}', theme.helperName).replace('{verb}', theme.missionVerb)}
-          </p>
+          <p className="text-white/60 text-sm mb-6 max-w-md mx-auto">{introText}</p>
           <GlowButton size="xl" color={theme.accent} onClick={handleStart}>
             Start {theme.missionVerb} →
           </GlowButton>

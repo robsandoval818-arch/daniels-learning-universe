@@ -344,8 +344,14 @@ export default function ParentDashboardScreen() {
           </div>
 
           <div className="mb-5">
-            <p className="text-white/60 text-sm mb-2">Sound &amp; Animations</p>
-            <div className="flex gap-2">
+            <p className="text-white/60 text-sm mb-2">Sound, Narration &amp; Animations</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => updateSettings({ narrationOn: !settings.narrationOn })}
+                className="px-4 py-2 rounded-xl text-sm font-display glass"
+              >
+                Read-Aloud: {settings.narrationOn ? 'On' : 'Off'}
+              </button>
               <button
                 onClick={() => updateSettings({ soundOn: !settings.soundOn })}
                 className="px-4 py-2 rounded-xl text-sm font-display glass"

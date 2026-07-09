@@ -23,7 +23,12 @@ export default function ProfileScreen() {
       <TopBar theme={theme} stars={progress.stars} streak={progress.streakDays} onBack={() => setScreen('home')} title="My Profile" />
       <div className="px-6 pb-16 max-w-3xl mx-auto">
         <GlassCard className="p-8 text-center mb-8" glow>
-          <div className="text-6xl mb-3">{theme.helperEmoji}</div>
+          <div
+            className="w-28 h-28 rounded-full overflow-hidden mx-auto mb-3"
+            style={{ border: `2px solid ${theme.accent}88`, boxShadow: `0 0 30px -6px ${theme.accent}99` }}
+          >
+            <img src={theme.helperImage} alt={theme.helperName} className="w-full h-full object-cover" />
+          </div>
           <h2 className="font-display text-2xl font-bold mb-1">{progress.childName}</h2>
           <p className="text-white/50 text-sm mb-6">Explorer of {theme.name}</p>
           <div className="grid grid-cols-3 gap-4">
@@ -69,9 +74,12 @@ export default function ProfileScreen() {
           )}
         </GlassCard>
 
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 flex-wrap">
           <GlowButton color={theme.accent} onClick={() => setScreen('mission-map')}>
             Continue Adventure →
+          </GlowButton>
+          <GlowButton variant="ghost" color={theme.accent} onClick={() => setScreen('character-builder')}>
+            Build Your Character →
           </GlowButton>
           <GlowButton variant="ghost" color="#8b6df5" onClick={() => setScreen('theme-select')}>
             Change World

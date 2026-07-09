@@ -50,6 +50,7 @@ function defaultSettings(): ParentSettings {
     startingLevel: 'foundation',
     dailySessionMinutes: 15,
     soundOn: true,
+    narrationOn: true,
     animationsOn: true,
     lockedThemeIds: [],
     customWords: [],

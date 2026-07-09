@@ -11,6 +11,7 @@ import ReadingChallengeScreen from './components/screens/ReadingChallengeScreen'
 import MathChallengeScreen from './components/screens/MathChallengeScreen'
 import BonusGameScreen from './components/screens/BonusGameScreen'
 import RewardChestScreen from './components/screens/RewardChestScreen'
+import CharacterBuilderScreen from './components/screens/CharacterBuilderScreen'
 import CertificateScreen from './components/screens/CertificateScreen'
 import ParentDashboardScreen from './components/screens/ParentDashboardScreen'
 import SettingsScreen from './components/screens/SettingsScreen'
@@ -25,6 +26,7 @@ const SCREEN_MAP: Record<ScreenId, React.ComponentType> = {
   'math-challenge': MathChallengeScreen,
   'bonus-game': BonusGameScreen,
   'reward-chest': RewardChestScreen,
+  'character-builder': CharacterBuilderScreen,
   certificate: CertificateScreen,
   'parent-dashboard': ParentDashboardScreen,
   settings: SettingsScreen,

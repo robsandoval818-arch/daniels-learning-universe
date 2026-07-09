@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import type { Question, ThemeWorld } from '../../types'
 import GlassCard from '../ui/GlassCard'
 import { randomEncouragement } from '../../lib/masteryEngine'
+import { useAutoNarrate, useSpeakOnDemand } from '../../hooks/useSpeak'
 
 interface QuestionCardProps {
   question: Question
@@ -66,6 +67,20 @@ export default function QuestionCard({ question, theme, questionNumber, totalQue
   }, [question.id])
 
   const correctOption = question.options.find((o) => o.isCorrect)
+  const showHint = status === 'wrong-retry' || status === 'reveal'
+
+  // Read the question and its choices aloud automatically whenever a new
+  // question loads — the core "help him" feature for a pre/early reader.
+  const choicesText = question.options.map((o) => o.label).join(', ')
+  const narrationText = `${question.prompt} Your choices are: ${choicesText}.`
+  useAutoNarrate(narrationText)
+  const speakNow = useSpeakOnDemand()
+
+  // Also read the encouragement + hint/explanation aloud once it appears.
+  const feedbackNarration = message
+    ? `${message}${showHint ? ' ' + (status === 'reveal' ? question.explanation : question.hint) : ''}`
+    : ''
+  useAutoNarrate(feedbackNarration)
 
   const handleSelect = (optionId: string, isCorrect: boolean) => {
     if (status === 'correct' || status === 'reveal') return
@@ -90,14 +105,21 @@ export default function QuestionCard({ question, theme, questionNumber, totalQue
     }
   }
 
-  const showHint = status === 'wrong-retry' || status === 'reveal'
-
   return (
     <GlassCard className="p-6 sm:p-8 w-full max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-xs font-display font-semibold uppercase tracking-widest text-white/50">
-          Question {questionNumber} of {totalQuestions}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-display font-semibold uppercase tracking-widest text-white/50">
+            Question {questionNumber} of {totalQuestions}
+          </span>
+          <button
+            onClick={() => speakNow(narrationText)}
+            aria-label="Read question aloud"
+            className="w-7 h-7 rounded-full glass flex items-center justify-center text-sm hover:bg-white/10 active:scale-95 transition"
+          >
+            🔊
+          </button>
+        </div>
         <div className="flex gap-1.5">
           {Array.from({ length: totalQuestions }).map((_, i) => (
             <div

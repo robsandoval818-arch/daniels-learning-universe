@@ -8,6 +8,7 @@ import ThemeBackground from '../ui/ThemeBackground'
 import QuestionCard from '../games/QuestionCard'
 import GlassCard from '../ui/GlassCard'
 import GlowButton from '../ui/GlowButton'
+import { useAutoNarrate } from '../../hooks/useSpeak'
 
 const BAND_LABEL: Record<string, string> = {
   foundation: 'Foundation',
@@ -27,6 +28,11 @@ export default function PlacementAdventureScreen() {
   const [result, setResult] = useState<PlacementResult | null>(null)
 
   const question = PLACEMENT_QUESTIONS[index]
+
+  // Note: the question itself is narrated by QuestionCard once it mounts;
+  // we only narrate the final result summary here to avoid two lines of
+  // speech competing for the same moment.
+  useAutoNarrate(result ? result.recommendation : null)
 
   const handleAnswer = (correct: boolean) => {
     const nextAnswers = [...answers, { questionId: question.id, correct }]
@@ -49,9 +55,13 @@ export default function PlacementAdventureScreen() {
       <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
         <div className="text-center mb-8">
           <p className="uppercase tracking-[0.3em] text-xs text-white/40 font-display mb-2">Placement Adventure</p>
-          <h1 className="font-display text-2xl sm:text-4xl font-bold">
-            {theme.helperEmoji} {theme.helperName} wants to meet you!
-          </h1>
+          <div
+            className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-3"
+            style={{ border: `2px solid ${theme.accent}88`, boxShadow: `0 0 30px -6px ${theme.accent}99` }}
+          >
+            <img src={theme.helperImage} alt={theme.helperName} className="w-full h-full object-cover" />
+          </div>
+          <h1 className="font-display text-2xl sm:text-4xl font-bold">{theme.helperName} wants to meet you!</h1>
           <p className="text-white/50 text-sm mt-2 max-w-md mx-auto">
             A few quick questions so we start at exactly the right spot — no pressure, just have fun!
           </p>

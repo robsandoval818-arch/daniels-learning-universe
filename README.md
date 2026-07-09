@@ -217,8 +217,16 @@ Keep new themes **original** — inspired by a genre, not copied from any specif
 
 - Supabase or Firebase for cloud save + true multi-device sync
 - A lightweight parent login (email/password) if you deploy this somewhere other than a single trusted device
-- Text-to-speech for pre-readers
 - A real drawing/tracing canvas (the current `trace-number` question type is a simplified tap-to-confirm interaction, not full stylus tracing)
+- Custom, recorded audio (currently narration uses the browser's built-in voice — see below)
+
+## 14. Read-aloud narration
+
+Every question, its answer choices, feedback, mission intros, and reward reveals can be read aloud automatically using the browser's built-in Web Speech API (`src/lib/speech.ts`) — no audio files, no third-party service, works offline. This is on by default and matters most for a pre/early reader like Daniel.
+
+- Toggle it anytime in Settings ("Read-Aloud Narration") or the Parent Dashboard.
+- Each question also has a 🔊 replay button in case the auto-narration doesn't fire (some browsers require one user tap before allowing speech).
+- Voice quality depends on what's installed on the device — iPads/Macs generally have good built-in voices; if you want a specific voice, adjust the preference logic in `pickVoice()` inside `src/lib/speech.ts`.
 
 ---
 

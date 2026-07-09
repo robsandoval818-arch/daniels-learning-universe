@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useGameStore } from '../../store/useGameStore'
 import { getTheme } from '../../data/themeWorlds'
 import { getMissionForDay } from '../../data/dailyMissions'
-import { getRewardById } from '../../data/rewards'
+import { getRewardById, REWARDS } from '../../data/rewards'
 import ThemeBackground from '../ui/ThemeBackground'
 import GlassCard from '../ui/GlassCard'
 import GlowButton from '../ui/GlowButton'
 import Badge from '../ui/Badge'
+import { useAutoNarrate } from '../../hooks/useSpeak'
 
 export default function RewardChestScreen() {
   const progress = useGameStore((s) => s.progress)
@@ -22,6 +23,11 @@ export default function RewardChestScreen() {
 
   const [opened, setOpened] = useState(false)
   const [claimed, setClaimed] = useState(false)
+
+  const buildPieces = REWARDS.filter((r) => r.id !== 'reward-boss' && r.id !== 'reward-certificate')
+  const collectedCount = buildPieces.filter((p) => progress.unlockedRewardIds.includes(p.id)).length
+
+  useAutoNarrate(opened ? `${theme.levelUpLabel} You unlocked the ${themeRewardName}!` : 'Mission complete! Tap the chest to reveal your reward.')
 
   const handleOpen = () => {
     setOpened(true)
@@ -80,9 +86,20 @@ export default function RewardChestScreen() {
                   </div>
                 </div>
                 {claimed && (
-                  <GlowButton color={theme.accent} onClick={handleContinue} className="w-full">
-                    Continue →
-                  </GlowButton>
+                  <>
+                    {reward?.type !== 'certificate' && (
+                      <button
+                        onClick={() => setScreen('character-builder')}
+                        className="block w-full text-xs font-display font-semibold mb-3"
+                        style={{ color: theme.accent }}
+                      >
+                        {collectedCount}/{buildPieces.length} pieces collected — see {theme.helperName} →
+                      </button>
+                    )}
+                    <GlowButton color={theme.accent} onClick={handleContinue} className="w-full">
+                      Continue →
+                    </GlowButton>
+                  </>
                 )}
               </GlassCard>
             </motion.div>

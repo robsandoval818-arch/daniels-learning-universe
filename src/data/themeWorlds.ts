@@ -1,4 +1,9 @@
 import type { ThemeWorld, ThemeId } from '../types'
+import captainCog from '../assets/characters/captain-cog.webp'
+import professorBoo from '../assets/characters/professor-boo.webp'
+import ember from '../assets/characters/ember.webp'
+import coachNova from '../assets/characters/coach-nova.webp'
+import architectMilo from '../assets/characters/architect-milo.webp'
 
 // ─────────────────────────────────────────────────────────────────────────
 // Five fully-original theme worlds. Inspired only by broad genre styles
@@ -15,6 +20,7 @@ export const THEME_WORLDS: Record<ThemeId, ThemeWorld> = {
       'Deep in Chrome Valley, a squad of friendly rescue bots need a brilliant young engineer to power them up. Every mission you solve charges their circuits a little more.',
     helperName: 'Captain Cog',
     helperEmoji: '🤖',
+    helperImage: captainCog,
     gradientFrom: '#0b1220',
     gradientVia: '#132743',
     gradientTo: '#0a0f1c',
@@ -37,6 +43,7 @@ export const THEME_WORLDS: Record<ThemeId, ThemeWorld> = {
       'Welcome to the Academy! Friendly, giggly ghosts are hiding all over Moonlight Manor. Solve missions to earn glow-traps and catch them all.',
     helperName: 'Professor Boo',
     helperEmoji: '👻',
+    helperImage: professorBoo,
     gradientFrom: '#120c1f',
     gradientVia: '#241a3d',
     gradientTo: '#0c0916',
@@ -59,6 +66,7 @@ export const THEME_WORLDS: Record<ThemeId, ThemeWorld> = {
       'In the misty hills of Wildspring, tiny creatures are waiting for a trainer. Complete reading and math quests to help your creature grow strong and happy.',
     helperName: 'Ranger Wren',
     helperEmoji: '🐉',
+    helperImage: ember,
     gradientFrom: '#0a1710',
     gradientVia: '#123222',
     gradientTo: '#08120d',
@@ -81,6 +89,7 @@ export const THEME_WORLDS: Record<ThemeId, ThemeWorld> = {
       'Skyline City needs a new hero! Every mission you complete at the Academy unlocks a new superpower — speed, strength, smarts, and heart.',
     helperName: 'Coach Nova',
     helperEmoji: '🦸',
+    helperImage: coachNova,
     gradientFrom: '#170a12',
     gradientVia: '#33101f',
     gradientTo: '#120810',
@@ -103,6 +112,7 @@ export const THEME_WORLDS: Record<ThemeId, ThemeWorld> = {
       'The Kingdom of Brickhaven is just a few bricks away from greatness. Solve missions to earn rare bricks and build castles, towers, and treasure rooms.',
     helperName: 'Architect Milo',
     helperEmoji: '🧱',
+    helperImage: architectMilo,
     gradientFrom: '#181206',
     gradientVia: '#392a0d',
     gradientTo: '#120d05',

@@ -45,10 +45,10 @@ export default function ThemeSelectorScreen() {
                   whileHover={locked ? {} : { scale: 1.02 }}
                 >
                   <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4"
+                    className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center mb-4"
                     style={{ background: `${theme.accent}22`, border: `1px solid ${theme.accent}55` }}
                   >
-                    {theme.helperEmoji}
+                    <img src={theme.helperImage} alt={theme.helperName} className="w-full h-full object-cover" />
                   </div>
                   <h3 className="font-display text-xl font-semibold mb-1">{theme.name}</h3>
                   <p className="text-sm text-white/50 mb-4">{theme.tagline}</p>

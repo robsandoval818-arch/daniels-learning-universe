@@ -21,6 +21,7 @@ export type ScreenId =
   | 'math-challenge'
   | 'bonus-game'
   | 'reward-chest'
+  | 'character-builder'
   | 'certificate'
   | 'parent-dashboard'
   | 'settings'
@@ -151,6 +152,7 @@ export interface ThemeWorld {
   description: string
   helperName: string
   helperEmoji: string
+  helperImage: string
   gradientFrom: string
   gradientVia: string
   gradientTo: string
@@ -222,6 +224,7 @@ export interface ParentSettings {
   startingLevel: DifficultyBand
   dailySessionMinutes: number
   soundOn: boolean
+  narrationOn: boolean
   animationsOn: boolean
   lockedThemeIds: ThemeId[]
   customWords: string[]

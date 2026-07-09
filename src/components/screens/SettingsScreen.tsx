@@ -32,6 +32,11 @@ export default function SettingsScreen() {
       <div className="px-6 pb-16 max-w-xl mx-auto">
         <GlassCard className="p-6 mb-6">
           <h3 className="font-display font-semibold mb-2">Play Preferences</h3>
+          <ToggleRow
+            label="Read-Aloud Narration"
+            value={settings.narrationOn}
+            onChange={(v) => updateSettings({ narrationOn: v })}
+          />
           <ToggleRow label="Sound Effects" value={settings.soundOn} onChange={(v) => updateSettings({ soundOn: v })} />
           <ToggleRow label="Animations" value={settings.animationsOn} onChange={(v) => updateSettings({ animationsOn: v })} />
         </GlassCard>
