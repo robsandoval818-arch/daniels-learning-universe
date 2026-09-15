@@ -40,6 +40,7 @@ function defaultProgress(): ChildProgress {
     sightWordMastery: {},
     bestSightWordStreak: 0,
     unlockedRewardIds: [],
+    ownedPrizeIds: [],
     unlockedThemeIds: ['robot-rescue', 'ghost-catcher', 'creature-quest', 'hero-training', 'brick-builder'],
     sessions: [],
     questionHistory: [],
@@ -97,6 +98,9 @@ interface GameStore {
 
   recordSightWordAttempt: (word: string, correct: boolean) => void
   completeSightWordSprint: (wordsCorrect: number, wordsTotal: number, bestStreak: number) => void
+
+  /** Returns true if the purchase went through (enough coins, not already owned). */
+  buyPrize: (prizeId: string, cost: number) => boolean
 
   resetProgress: () => void
   exportProgress: () => string
@@ -307,20 +311,40 @@ export const useGameStore = create<GameStore>()(
             progress: {
               ...state.progress,
               sightWordMastery: { ...state.progress.sightWordMastery, [key]: updated },
+              // Instant payout the moment he gets one right — the whole
+              // point is that the reward lands with the tap, not minutes
+              // later when the round finally ends.
+              xp: state.progress.xp + (correct ? 2 : 0),
+              coins: state.progress.coins + (correct ? 1 : 0),
+              stars: state.progress.stars + (correct ? 1 : 0),
             },
           }
         }),
 
-      completeSightWordSprint: (wordsCorrect, _wordsTotal, bestStreak) =>
+      // Per-word rewards are already paid out live in recordSightWordAttempt
+      // above, so this is just a flat "you finished the sprint" bonus on
+      // top — not a re-award of the same words.
+      completeSightWordSprint: (_wordsCorrect, _wordsTotal, bestStreak) =>
         set((state) => ({
           progress: {
             ...state.progress,
-            xp: state.progress.xp + wordsCorrect * 2,
-            coins: state.progress.coins + wordsCorrect,
-            stars: state.progress.stars + wordsCorrect,
+            coins: state.progress.coins + 5,
             bestSightWordStreak: Math.max(state.progress.bestSightWordStreak, bestStreak),
           },
         })),
+
+      buyPrize: (prizeId, cost) => {
+        const { progress } = get()
+        if (progress.ownedPrizeIds.includes(prizeId) || progress.coins < cost) return false
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            coins: state.progress.coins - cost,
+            ownedPrizeIds: [...state.progress.ownedPrizeIds, prizeId],
+          },
+        }))
+        return true
+      },
 
       resetProgress: () => set({ progress: defaultProgress(), screen: 'home' }),
 

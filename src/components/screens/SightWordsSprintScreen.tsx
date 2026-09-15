@@ -38,6 +38,10 @@ export default function SightWordsSprintScreen() {
   const [correctCount, setCorrectCount] = useState(0)
   const [timeLeft, setTimeLeft] = useState(ROUND_SECONDS)
   const [mood, setMood] = useState<CoachMood>('idle')
+  // Fires a little "+1 ⭐" popup right on the tile the instant he's
+  // correct — the reward has to land with the tap, not minutes later
+  // when the whole sprint finally ends.
+  const [rewardPop, setRewardPop] = useState<{ id: number; word: string } | null>(null)
 
   const lastTargetRef = useRef<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -88,6 +92,7 @@ export default function SightWordsSprintScreen() {
     setSelected(null)
     setTileState('idle')
     setMood('idle')
+    setRewardPop(null)
     setRound(roundNum)
     setStage('flash')
 
@@ -143,6 +148,7 @@ export default function SightWordsSprintScreen() {
       bestStreakRef.current = newBest
       setTileState('correct')
       setMood('happy')
+      setRewardPop({ id: Date.now(), word })
       advance(newCorrect, newBest)
     } else {
       setStreak(0)
@@ -301,13 +307,27 @@ export default function SightWordsSprintScreen() {
                             disabled={tileState !== 'idle'}
                             whileTap={{ scale: 0.95 }}
                             animate={showWrong ? { x: [-6, 6, -6, 6, 0] } : {}}
-                            className={`rounded-2xl px-5 py-5 text-2xl font-display font-bold transition-colors border
+                            className={`relative overflow-visible rounded-2xl px-5 py-5 text-2xl font-display font-bold transition-colors border
                               ${showCorrect ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100' : ''}
                               ${showWrong ? 'bg-rose-500/20 border-rose-400/60 text-rose-100 opacity-70' : ''}
                               ${!showCorrect && !showWrong ? 'glass border-white/10 hover:bg-white/10' : ''}
                             `}
                           >
                             {word}
+                            <AnimatePresence>
+                              {rewardPop && isSelected && rewardPop.word === word && (
+                                <motion.span
+                                  key={rewardPop.id}
+                                  initial={{ opacity: 0, y: 0, scale: 0.6 }}
+                                  animate={{ opacity: 1, y: -34, scale: 1.1 }}
+                                  exit={{ opacity: 0, y: -50 }}
+                                  transition={{ duration: 0.7, ease: 'easeOut' }}
+                                  className="absolute left-1/2 -translate-x-1/2 top-1 text-base font-display font-bold text-aurora-gold whitespace-nowrap pointer-events-none"
+                                >
+                                  +1 ⭐ +1 🪙
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
                           </motion.button>
                         )
                       })}
@@ -335,14 +355,24 @@ export default function SightWordsSprintScreen() {
                     <p className="text-[11px] text-white/50 uppercase">Best Streak</p>
                   </div>
                   <div className="glass rounded-2xl px-5 py-3">
-                    <p className="text-xl font-display font-bold text-aurora-gold">+{correctCount * 2}</p>
-                    <p className="text-[11px] text-white/50 uppercase">XP Earned</p>
+                    <p className="text-xl font-display font-bold text-aurora-gold">🪙 {correctCount + 5}</p>
+                    <p className="text-[11px] text-white/50 uppercase">Coins Earned</p>
                   </div>
                 </div>
+                <p className="text-white/40 text-xs mb-6 -mt-3">
+                  {correctCount} for the words you got right, plus a +5 finish bonus — head to the Prize Garage to spend them!
+                </p>
                 <div className="flex flex-col gap-3">
                   <GlowButton color={theme.accent} onClick={handleReplay}>
                     Sprint Again →
                   </GlowButton>
+                  <button
+                    onClick={() => setScreen('prize-garage')}
+                    className="text-sm font-display font-semibold"
+                    style={{ color: theme.accent }}
+                  >
+                    🏪 Visit Prize Garage →
+                  </button>
                   <button
                     onClick={() => setScreen('mission-map')}
                     className="text-white/40 hover:text-white/70 text-sm font-display"

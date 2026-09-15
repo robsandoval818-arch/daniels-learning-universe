@@ -13,6 +13,7 @@ import BonusGameScreen from './components/screens/BonusGameScreen'
 import RewardChestScreen from './components/screens/RewardChestScreen'
 import CharacterBuilderScreen from './components/screens/CharacterBuilderScreen'
 import SightWordsSprintScreen from './components/screens/SightWordsSprintScreen'
+import PrizeGarageScreen from './components/screens/PrizeGarageScreen'
 import CertificateScreen from './components/screens/CertificateScreen'
 import ParentDashboardScreen from './components/screens/ParentDashboardScreen'
 import SettingsScreen from './components/screens/SettingsScreen'
@@ -29,6 +30,7 @@ const SCREEN_MAP: Record<ScreenId, React.ComponentType> = {
   'reward-chest': RewardChestScreen,
   'character-builder': CharacterBuilderScreen,
   'sight-words-sprint': SightWordsSprintScreen,
+  'prize-garage': PrizeGarageScreen,
   certificate: CertificateScreen,
   'parent-dashboard': ParentDashboardScreen,
   settings: SettingsScreen,

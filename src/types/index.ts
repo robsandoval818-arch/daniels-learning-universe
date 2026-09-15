@@ -26,6 +26,7 @@ export type ScreenId =
   | 'parent-dashboard'
   | 'settings'
   | 'sight-words-sprint'
+  | 'prize-garage'
 
 export type DifficultyBand =
   | 'foundation'
@@ -146,6 +147,19 @@ export interface Reward {
   xp: number
 }
 
+export type PrizeCategory = 'planes' | 'cars' | 'robots' | 'dinos'
+
+/** A coin-purchasable collectible in the Prize Garage — separate from the
+ * automatic mission-day Rewards above. Daniel spends coins he earns (e.g.
+ * from Sight Words Sprint) to buy these on purpose. */
+export interface Prize {
+  id: string
+  name: string
+  category: PrizeCategory
+  icon: string
+  cost: number
+}
+
 export interface ThemeWorld {
   id: ThemeId
   name: string
@@ -219,6 +233,8 @@ export interface ChildProgress {
   sightWordMastery: Record<string, MasteryRecord>
   bestSightWordStreak: number
   unlockedRewardIds: string[]
+  /** Prize Garage items Daniel has bought with coins. */
+  ownedPrizeIds: string[]
   unlockedThemeIds: ThemeId[]
   sessions: GameSession[]
   questionHistory: QuestionHistoryEntry[]

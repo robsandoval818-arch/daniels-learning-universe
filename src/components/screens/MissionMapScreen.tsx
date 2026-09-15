@@ -64,6 +64,21 @@ export default function MissionMapScreen() {
           <span className="text-white/40 text-sm">→</span>
         </GlassCard>
 
+        <GlassCard
+          onClick={() => setScreen('prize-garage')}
+          className="p-5 mb-8 flex items-center justify-between cursor-pointer hover:-translate-y-0.5 transition-transform"
+          style={{ boxShadow: `0 0 0 1px ${theme.accent}30` }}
+        >
+          <div>
+            <p className="font-display font-semibold text-sm sm:text-base">🏪 Prize Garage</p>
+            <p className="text-white/50 text-xs mt-0.5">Spend your coins on planes, race cars, robots &amp; dinos</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-display font-bold text-sm text-aurora-gold">🪙 {progress.coins}</span>
+            <span className="text-white/40 text-sm">→</span>
+          </div>
+        </GlassCard>
+
         <div className="grid grid-cols-5 sm:grid-cols-6 gap-3">
           {DAILY_MISSIONS.map((mission, i) => {
             const isDone = progress.completedDays.includes(mission.day)
