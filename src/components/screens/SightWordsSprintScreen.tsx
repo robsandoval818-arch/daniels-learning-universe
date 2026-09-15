@@ -2,15 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useGameStore } from '../../store/useGameStore'
 import { getTheme } from '../../data/themeWorlds'
-import { pickNextTarget, buildOptions, SPRINT_ROUND_COUNT, ROUND_SECONDS } from '../../lib/sightWordsGame'
+import { pickNextTarget, buildOptions, SPRINT_ROUND_COUNT, ROUND_SECONDS, FLASH_MS } from '../../lib/sightWordsGame'
 import ThemeBackground from '../ui/ThemeBackground'
 import TopBar from '../ui/TopBar'
 import GlassCard from '../ui/GlassCard'
 import GlowButton from '../ui/GlowButton'
 import TutorCoach, { type CoachMood } from '../ui/TutorCoach'
-import { useAutoNarrate } from '../../hooks/useSpeak'
+import { useAutoNarrate, useSpeakOnDemand } from '../../hooks/useSpeak'
 
 type Phase = 'ready' | 'playing' | 'results'
+/** flash: word shown + read aloud, no tiles yet — this is the "study"
+ * moment. answer: word is hidden, tiles are up, timer is running — this
+ * is the actual recognition test. */
+type Stage = 'flash' | 'answer'
 type TileState = 'idle' | 'correct' | 'wrong' | 'reveal'
 
 export default function SightWordsSprintScreen() {
@@ -23,6 +27,7 @@ export default function SightWordsSprintScreen() {
   const words = settings.customWords
 
   const [phase, setPhase] = useState<Phase>('ready')
+  const [stage, setStage] = useState<Stage>('flash')
   const [round, setRound] = useState(0)
   const [target, setTarget] = useState('')
   const [options, setOptions] = useState<string[]>([])
@@ -36,8 +41,13 @@ export default function SightWordsSprintScreen() {
 
   const lastTargetRef = useRef<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const flashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const speakNow = useSpeakOnDemand()
 
-  const narration = phase === 'playing' && tileState === 'idle' ? target : ''
+  // Narrate the word only during the flash "study" moment — once tiles are
+  // up, re-hearing it is an explicit action (the speaker button), not
+  // automatic, so he has to actually try to recall it first.
+  const narration = phase === 'playing' && stage === 'flash' ? target : ''
   useAutoNarrate(narration)
 
   const clearTimer = () => {
@@ -47,17 +57,16 @@ export default function SightWordsSprintScreen() {
     }
   }
 
-  const startRound = (roundNum: number) => {
-    const t = pickNextTarget(words, progress.sightWordMastery, lastTargetRef.current)
-    lastTargetRef.current = t
-    setTarget(t)
-    setOptions(buildOptions(t, words))
-    setSelected(null)
-    setTileState('idle')
-    setTimeLeft(ROUND_SECONDS)
-    setMood('idle')
-    setRound(roundNum)
+  const clearFlashTimeout = () => {
+    if (flashTimeoutRef.current) {
+      clearTimeout(flashTimeoutRef.current)
+      flashTimeoutRef.current = null
+    }
+  }
 
+  const beginAnswerStage = () => {
+    setStage('answer')
+    setTimeLeft(ROUND_SECONDS)
     clearTimer()
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
@@ -69,6 +78,22 @@ export default function SightWordsSprintScreen() {
         return prev - 1
       })
     }, 1000)
+  }
+
+  const startRound = (roundNum: number) => {
+    const t = pickNextTarget(words, progress.sightWordMastery, lastTargetRef.current)
+    lastTargetRef.current = t
+    setTarget(t)
+    setOptions(buildOptions(t, words))
+    setSelected(null)
+    setTileState('idle')
+    setMood('idle')
+    setRound(roundNum)
+    setStage('flash')
+
+    clearTimer()
+    clearFlashTimeout()
+    flashTimeoutRef.current = setTimeout(beginAnswerStage, FLASH_MS)
   }
 
   const finishGame = (finalCorrect: number, finalBest: number) => {
@@ -143,7 +168,13 @@ export default function SightWordsSprintScreen() {
     setPhase('ready')
   }
 
-  useEffect(() => () => clearTimer(), [])
+  useEffect(
+    () => () => {
+      clearTimer()
+      clearFlashTimeout()
+    },
+    [],
+  )
 
   if (!words.length) {
     return (
@@ -179,7 +210,7 @@ export default function SightWordsSprintScreen() {
                 </div>
                 <h2 className="font-display text-2xl font-bold mb-2">⚡ Speed Round!</h2>
                 <p className="text-white/60 text-sm mb-2">
-                  {words.length} word{words.length === 1 ? '' : 's'} loaded. A word flashes — tap it fast before time runs out!
+                  {words.length} word{words.length === 1 ? '' : 's'} loaded. A word flashes and disappears — then tap the one you just saw!
                 </p>
                 <p className="text-white/40 text-xs mb-6">{SPRINT_ROUND_COUNT} rounds · build your streak · no penalties, just speed!</p>
                 <GlowButton size="lg" color={theme.accent} onClick={handleStart}>
@@ -205,50 +236,73 @@ export default function SightWordsSprintScreen() {
                   <TutorCoach theme={theme} mood={mood} />
                 </div>
 
-                <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden mb-6">
-                  <motion.div
-                    className="h-full rounded-full"
-                    style={{ background: theme.accent }}
-                    animate={{ width: `${(timeLeft / ROUND_SECONDS) * 100}%` }}
-                    transition={{ duration: 0.9, ease: 'linear' }}
-                  />
-                </div>
-
-                <motion.p
-                  key={target}
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-                  className="font-display text-5xl sm:text-6xl font-bold text-center mb-8 select-none"
-                >
-                  {target}
-                </motion.p>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {options.map((word) => {
-                    const isSelected = selected === word
-                    const isTarget = word.toLowerCase() === target.toLowerCase()
-                    const showCorrect = (tileState === 'correct' && isSelected) || (tileState === 'reveal' && isTarget)
-                    const showWrong = tileState !== 'idle' && isSelected && !isTarget
-
-                    return (
-                      <motion.button
-                        key={word}
-                        onClick={() => handlePick(word)}
-                        disabled={tileState !== 'idle'}
-                        whileTap={{ scale: 0.95 }}
-                        animate={showWrong ? { x: [-6, 6, -6, 6, 0] } : {}}
-                        className={`rounded-2xl px-5 py-5 text-2xl font-display font-bold transition-colors border
-                          ${showCorrect ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100' : ''}
-                          ${showWrong ? 'bg-rose-500/20 border-rose-400/60 text-rose-100 opacity-70' : ''}
-                          ${!showCorrect && !showWrong ? 'glass border-white/10 hover:bg-white/10' : ''}
-                        `}
+                <AnimatePresence mode="wait">
+                  {stage === 'flash' ? (
+                    <motion.div key="flash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <p className="text-center text-white/40 text-xs uppercase tracking-widest font-display mb-3">
+                        Look and listen…
+                      </p>
+                      <motion.p
+                        key={target}
+                        initial={{ opacity: 0, scale: 0.7 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                        className="font-display text-5xl sm:text-6xl font-bold text-center mb-8 select-none"
+                        style={{ color: theme.accent }}
                       >
-                        {word}
-                      </motion.button>
-                    )
-                  })}
-                </div>
+                        {target}
+                      </motion.p>
+                    </motion.div>
+                  ) : (
+                    <motion.div key="answer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-white/40 text-xs uppercase tracking-widest font-display">Which word was it?</p>
+                        <button
+                          onClick={() => speakNow(target)}
+                          aria-label="Hear the word again"
+                          className="w-7 h-7 rounded-full glass flex items-center justify-center text-sm hover:bg-white/10 active:scale-95 transition"
+                        >
+                          🔊
+                        </button>
+                      </div>
+
+                      <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden mb-6">
+                        <motion.div
+                          className="h-full rounded-full"
+                          style={{ background: theme.accent }}
+                          animate={{ width: `${(timeLeft / ROUND_SECONDS) * 100}%` }}
+                          transition={{ duration: 0.9, ease: 'linear' }}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {options.map((word) => {
+                          const isSelected = selected === word
+                          const isTarget = word.toLowerCase() === target.toLowerCase()
+                          const showCorrect = (tileState === 'correct' && isSelected) || (tileState === 'reveal' && isTarget)
+                          const showWrong = tileState !== 'idle' && isSelected && !isTarget
+
+                          return (
+                            <motion.button
+                              key={word}
+                              onClick={() => handlePick(word)}
+                              disabled={tileState !== 'idle'}
+                              whileTap={{ scale: 0.95 }}
+                              animate={showWrong ? { x: [-6, 6, -6, 6, 0] } : {}}
+                              className={`rounded-2xl px-5 py-5 text-2xl font-display font-bold transition-colors border
+                                ${showCorrect ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100' : ''}
+                                ${showWrong ? 'bg-rose-500/20 border-rose-400/60 text-rose-100 opacity-70' : ''}
+                                ${!showCorrect && !showWrong ? 'glass border-white/10 hover:bg-white/10' : ''}
+                              `}
+                            >
+                              {word}
+                            </motion.button>
+                          )
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </GlassCard>
             </motion.div>
           )}

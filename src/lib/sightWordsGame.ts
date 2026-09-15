@@ -71,3 +71,8 @@ export function buildOptions(target: string, words: string[], count = 4): string
 
 export const SPRINT_ROUND_COUNT = 10
 export const ROUND_SECONDS = 6
+/** How long the word is shown + read aloud before it disappears and the
+ * answer tiles appear. This is what makes it a real recognition test
+ * instead of a shape-matching game — the word is gone by the time he has
+ * to pick it. */
+export const FLASH_MS = 1700
