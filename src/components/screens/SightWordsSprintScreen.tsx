@@ -236,73 +236,84 @@ export default function SightWordsSprintScreen() {
                   <TutorCoach theme={theme} mood={mood} />
                 </div>
 
-                <AnimatePresence mode="wait">
-                  {stage === 'flash' ? (
-                    <motion.div key="flash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      <p className="text-center text-white/40 text-xs uppercase tracking-widest font-display mb-3">
-                        Look and listen…
-                      </p>
-                      <motion.p
-                        key={target}
-                        initial={{ opacity: 0, scale: 0.7 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 18 }}
-                        className="font-display text-5xl sm:text-6xl font-bold text-center mb-8 select-none"
-                        style={{ color: theme.accent }}
+                {stage === 'flash' ? (
+                  <motion.div
+                    key={`flash-${round}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() => {
+                      // Safety net: if the auto-advance timer ever misfires
+                      // (backgrounded tab, sluggish device), a tap moves on
+                      // immediately instead of leaving him stuck staring at
+                      // the word forever.
+                      clearFlashTimeout()
+                      beginAnswerStage()
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <p className="text-center text-white/40 text-xs uppercase tracking-widest font-display mb-3">
+                      Look and listen…
+                    </p>
+                    <motion.p
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                      className="font-display text-5xl sm:text-6xl font-bold text-center mb-8 select-none"
+                      style={{ color: theme.accent }}
+                    >
+                      {target}
+                    </motion.p>
+                    <p className="text-center text-white/25 text-[11px] font-display">(tap if it's stuck)</p>
+                  </motion.div>
+                ) : (
+                  <motion.div key={`answer-${round}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-white/40 text-xs uppercase tracking-widest font-display">Which word was it?</p>
+                      <button
+                        onClick={() => speakNow(target)}
+                        aria-label="Hear the word again"
+                        className="w-7 h-7 rounded-full glass flex items-center justify-center text-sm hover:bg-white/10 active:scale-95 transition"
                       >
-                        {target}
-                      </motion.p>
-                    </motion.div>
-                  ) : (
-                    <motion.div key="answer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <p className="text-white/40 text-xs uppercase tracking-widest font-display">Which word was it?</p>
-                        <button
-                          onClick={() => speakNow(target)}
-                          aria-label="Hear the word again"
-                          className="w-7 h-7 rounded-full glass flex items-center justify-center text-sm hover:bg-white/10 active:scale-95 transition"
-                        >
-                          🔊
-                        </button>
-                      </div>
+                        🔊
+                      </button>
+                    </div>
 
-                      <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden mb-6">
-                        <motion.div
-                          className="h-full rounded-full"
-                          style={{ background: theme.accent }}
-                          animate={{ width: `${(timeLeft / ROUND_SECONDS) * 100}%` }}
-                          transition={{ duration: 0.9, ease: 'linear' }}
-                        />
-                      </div>
+                    <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden mb-6">
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: theme.accent }}
+                        animate={{ width: `${(timeLeft / ROUND_SECONDS) * 100}%` }}
+                        transition={{ duration: 0.9, ease: 'linear' }}
+                      />
+                    </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        {options.map((word) => {
-                          const isSelected = selected === word
-                          const isTarget = word.toLowerCase() === target.toLowerCase()
-                          const showCorrect = (tileState === 'correct' && isSelected) || (tileState === 'reveal' && isTarget)
-                          const showWrong = tileState !== 'idle' && isSelected && !isTarget
+                    <div className="grid grid-cols-2 gap-3">
+                      {options.map((word) => {
+                        const isSelected = selected === word
+                        const isTarget = word.toLowerCase() === target.toLowerCase()
+                        const showCorrect = (tileState === 'correct' && isSelected) || (tileState === 'reveal' && isTarget)
+                        const showWrong = tileState !== 'idle' && isSelected && !isTarget
 
-                          return (
-                            <motion.button
-                              key={word}
-                              onClick={() => handlePick(word)}
-                              disabled={tileState !== 'idle'}
-                              whileTap={{ scale: 0.95 }}
-                              animate={showWrong ? { x: [-6, 6, -6, 6, 0] } : {}}
-                              className={`rounded-2xl px-5 py-5 text-2xl font-display font-bold transition-colors border
-                                ${showCorrect ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100' : ''}
-                                ${showWrong ? 'bg-rose-500/20 border-rose-400/60 text-rose-100 opacity-70' : ''}
-                                ${!showCorrect && !showWrong ? 'glass border-white/10 hover:bg-white/10' : ''}
-                              `}
-                            >
-                              {word}
-                            </motion.button>
-                          )
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                        return (
+                          <motion.button
+                            key={word}
+                            onClick={() => handlePick(word)}
+                            disabled={tileState !== 'idle'}
+                            whileTap={{ scale: 0.95 }}
+                            animate={showWrong ? { x: [-6, 6, -6, 6, 0] } : {}}
+                            className={`rounded-2xl px-5 py-5 text-2xl font-display font-bold transition-colors border
+                              ${showCorrect ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100' : ''}
+                              ${showWrong ? 'bg-rose-500/20 border-rose-400/60 text-rose-100 opacity-70' : ''}
+                              ${!showCorrect && !showWrong ? 'glass border-white/10 hover:bg-white/10' : ''}
+                            `}
+                          >
+                            {word}
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                  </motion.div>
+                )}
               </GlassCard>
             </motion.div>
           )}
