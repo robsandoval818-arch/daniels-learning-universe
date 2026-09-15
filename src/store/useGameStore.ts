@@ -37,6 +37,8 @@ function defaultProgress(): ChildProgress {
     totalSessions: 0,
     totalTimePlayedSeconds: 0,
     mastery: {},
+    sightWordMastery: {},
+    bestSightWordStreak: 0,
     unlockedRewardIds: [],
     unlockedThemeIds: ['robot-rescue', 'ghost-catcher', 'creature-quest', 'hero-training', 'brick-builder'],
     sessions: [],
@@ -90,7 +92,11 @@ interface GameStore {
   setStartingLevel: (band: DifficultyBand) => void
   toggleThemeLock: (themeId: ThemeId) => void
   addCustomWord: (word: string) => void
+  removeCustomWord: (word: string) => void
   addCustomMathFact: (fact: string) => void
+
+  recordSightWordAttempt: (word: string, correct: boolean) => void
+  completeSightWordSprint: (wordsCorrect: number, wordsTotal: number, bestStreak: number) => void
 
   resetProgress: () => void
   exportProgress: () => string
@@ -272,13 +278,48 @@ export const useGameStore = create<GameStore>()(
         }),
 
       addCustomWord: (word) =>
+        set((state) => {
+          const trimmed = word.trim()
+          if (!trimmed || state.settings.customWords.some((w) => w.toLowerCase() === trimmed.toLowerCase())) {
+            return {}
+          }
+          return {
+            settings: { ...state.settings, customWords: [...state.settings.customWords, trimmed] },
+          }
+        }),
+
+      removeCustomWord: (word) =>
         set((state) => ({
-          settings: { ...state.settings, customWords: [...state.settings.customWords, word] },
+          settings: { ...state.settings, customWords: state.settings.customWords.filter((w) => w !== word) },
         })),
 
       addCustomMathFact: (fact) =>
         set((state) => ({
           settings: { ...state.settings, customMathFacts: [...state.settings.customMathFacts, fact] },
+        })),
+
+      recordSightWordAttempt: (word, correct) =>
+        set((state) => {
+          const key = word.toLowerCase()
+          const existing = state.progress.sightWordMastery[key] ?? createMasteryRecord(key)
+          const updated: MasteryRecord = recordAttempt(existing, correct)
+          return {
+            progress: {
+              ...state.progress,
+              sightWordMastery: { ...state.progress.sightWordMastery, [key]: updated },
+            },
+          }
+        }),
+
+      completeSightWordSprint: (wordsCorrect, _wordsTotal, bestStreak) =>
+        set((state) => ({
+          progress: {
+            ...state.progress,
+            xp: state.progress.xp + wordsCorrect * 2,
+            coins: state.progress.coins + wordsCorrect,
+            stars: state.progress.stars + wordsCorrect,
+            bestSightWordStreak: Math.max(state.progress.bestSightWordStreak, bestStreak),
+          },
         })),
 
       resetProgress: () => set({ progress: defaultProgress(), screen: 'home' }),

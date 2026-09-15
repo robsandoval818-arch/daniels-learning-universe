@@ -10,6 +10,7 @@ import { useAutoNarrate } from '../../hooks/useSpeak'
 
 export default function MissionMapScreen() {
   const progress = useGameStore((s) => s.progress)
+  const settings = useGameStore((s) => s.settings)
   const setScreen = useGameStore((s) => s.setScreen)
   const theme = getTheme(progress.themeId)
 
@@ -45,6 +46,22 @@ export default function MissionMapScreen() {
               ⚔️ Boss Challenge Day
             </p>
           )}
+        </GlassCard>
+
+        <GlassCard
+          onClick={() => setScreen('sight-words-sprint')}
+          className="p-5 mb-8 flex items-center justify-between cursor-pointer hover:-translate-y-0.5 transition-transform"
+          style={{ boxShadow: `0 0 0 1px ${theme.accent}30` }}
+        >
+          <div>
+            <p className="font-display font-semibold text-sm sm:text-base">⚡ Sight Words Sprint</p>
+            <p className="text-white/50 text-xs mt-0.5">
+              {settings.customWords.length
+                ? `Practice your ${settings.customWords.length} word${settings.customWords.length === 1 ? '' : 's'} — anytime, extra practice`
+                : 'Ask a grown-up to add words, then play anytime for extra practice'}
+            </p>
+          </div>
+          <span className="text-white/40 text-sm">→</span>
         </GlassCard>
 
         <div className="grid grid-cols-5 sm:grid-cols-6 gap-3">

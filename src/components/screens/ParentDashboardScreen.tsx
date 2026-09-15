@@ -41,6 +41,7 @@ export default function ParentDashboardScreen() {
   const setStartingLevel = useGameStore((s) => s.setStartingLevel)
   const toggleThemeLock = useGameStore((s) => s.toggleThemeLock)
   const addCustomWord = useGameStore((s) => s.addCustomWord)
+  const removeCustomWord = useGameStore((s) => s.removeCustomWord)
   const addCustomMathFact = useGameStore((s) => s.addCustomMathFact)
   const resetProgress = useGameStore((s) => s.resetProgress)
   const exportProgress = useGameStore((s) => s.exportProgress)
@@ -368,12 +369,21 @@ export default function ParentDashboardScreen() {
           </div>
 
           <div className="mb-5">
-            <p className="text-white/60 text-sm mb-2">Add Custom Sight Word</p>
+            <p className="text-white/60 text-sm mb-1">Sight Words (Sight Words Sprint game)</p>
+            <p className="text-white/40 text-xs mb-2">
+              Add the exact words Daniel's working on — he can then play a fast, timed round to drill them.
+            </p>
             <div className="flex gap-2">
               <input
                 value={wordInput}
                 onChange={(e) => setWordInput(e.target.value)}
-                placeholder="e.g. dinosaur"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && wordInput.trim()) {
+                    addCustomWord(wordInput.trim())
+                    setWordInput('')
+                  }
+                }}
+                placeholder="e.g. said"
                 className="flex-1 glass rounded-xl px-3 py-2 text-sm bg-transparent outline-none"
               />
               <GlowButton
@@ -390,7 +400,28 @@ export default function ParentDashboardScreen() {
               </GlowButton>
             </div>
             {settings.customWords.length > 0 && (
-              <p className="text-white/40 text-xs mt-2">{settings.customWords.join(', ')}</p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                {settings.customWords.map((word) => (
+                  <button
+                    key={word}
+                    onClick={() => removeCustomWord(word)}
+                    className="glass rounded-full pl-3 pr-2 py-1 text-xs font-display flex items-center gap-1.5 hover:bg-rose-500/15 hover:border-rose-400/40 transition-colors"
+                    title="Remove word"
+                  >
+                    {word}
+                    <span className="text-white/40">✕</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {settings.customWords.length > 0 && (
+              <button
+                onClick={() => setScreen('sight-words-sprint')}
+                className="mt-3 text-xs font-display font-semibold"
+                style={{ color: theme.accent }}
+              >
+                Try Sight Words Sprint →
+              </button>
             )}
           </div>
 

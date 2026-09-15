@@ -25,6 +25,7 @@ export type ScreenId =
   | 'certificate'
   | 'parent-dashboard'
   | 'settings'
+  | 'sight-words-sprint'
 
 export type DifficultyBand =
   | 'foundation'
@@ -212,6 +213,11 @@ export interface ChildProgress {
   totalSessions: number
   totalTimePlayedSeconds: number
   mastery: Record<string, MasteryRecord>
+  /** Per-word accuracy for the Sight Words Sprint game, keyed by the exact
+   * word string (lowercased). Drives adaptive round-weighting so words
+   * Daniel struggles with show up more often. */
+  sightWordMastery: Record<string, MasteryRecord>
+  bestSightWordStreak: number
   unlockedRewardIds: string[]
   unlockedThemeIds: ThemeId[]
   sessions: GameSession[]
